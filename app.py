@@ -29,15 +29,11 @@ celery_app.conf.update(app.config)
 
 app.config['UPLOAD_FOLDER'] = os.getcwd()
 
-import re
-
-
 @celery_app.task(bind=True)
 def start_test_execution(self,yaml_location):
     """Background task that runs a long function with progress reports."""
     locustExtract.scriptentrypoint(os.path.abspath(yaml_location))
     print('executed long task')
-    push_html()
     return {'status': 'Task completed!'}
 
 
@@ -92,21 +88,6 @@ def test_task_status(task_id):
             'status': str(task.info),  # this is the exception raised
         }
     return jsonify(response)
-
-
-def push_html():
-    for entry in os.scandir('.'):
-        if entry.is_file():
-            # print(entry)
-            match = re.search("\.yaml$", entry.name)
-            if match:
-                print("The file ending with .xml is:",entry.name)
-
-                files = {'file': open(entry.name,'rb')}
-                url = 'https://hooks.slack.com/services/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'
-                data = {'name': entry.name}
-
-                requests.post(url, data=data, files=files)
 
 
 if __name__ == '__main__':
